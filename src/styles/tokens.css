@@ -1,0 +1,24 @@
+:root {
+  --ink: #17382d;
+  --ink-soft: #315548;
+  --coral: #e76f51;
+  --coral-dark: #bf5139;
+  --mustard: #e1b950;
+  --sage: #d7e1cf;
+  --sage-dark: #a9bb9d;
+  --paper: #fffaf0;
+  --paper-deep: #f2eddf;
+  --paper-muted: #e8e1d2;
+  --line: #d7cdbb;
+  --white: #fffdf8;
+  --text: #17382d;
+  --muted: #69766f;
+  --danger: #a73f31;
+  --shadow-ink: 4px 5px 0 var(--ink);
+  --shadow-soft: 0 18px 45px rgba(34, 57, 46, 0.1);
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --font-sans: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-display: Georgia, "Noto Serif SC", "Songti SC", serif;
+}
