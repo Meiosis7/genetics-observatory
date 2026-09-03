@@ -34,7 +34,7 @@
 **Interfaces:**
 - Produces: `App(): JSX.Element`，后续页面与组件的应用入口。
 
-- [ ] **Step 1: 写失败的应用冒烟测试**
+- [x] **Step 1: 写失败的应用冒烟测试**
 
 ```tsx
 import { render, screen } from '@testing-library/react'
@@ -49,12 +49,12 @@ describe('App', () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/App.test.tsx`
 Expected: FAIL，提示找不到 `./App` 或标题。
 
-- [ ] **Step 3: 创建最小 React/Vite 应用**
+- [x] **Step 3: 创建最小 React/Vite 应用**
 
 ```json
 {
@@ -79,12 +79,12 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 4: 安装依赖并确认测试通过**
+- [x] **Step 4: 安装依赖并确认测试通过**
 
 Run: `npm install && npm test -- --run src/App.test.tsx`
 Expected: 1 test PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add package.json package-lock.json index.html tsconfig.json vite.config.ts src
@@ -102,7 +102,7 @@ git commit -m "build: scaffold genetics observatory"
 - Produces: `Fraction`, `AllelePair`, `Gamete`, `OffspringCell`, `CrossResult`。
 - Produces: `fraction(numerator, denominator)`, `addFractions`, `multiplyFractions`, `formatFraction`, `toPercent`。
 
-- [ ] **Step 1: 写分数约分和运算测试**
+- [x] **Step 1: 写分数约分和运算测试**
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -119,12 +119,12 @@ describe('fraction', () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/genetics/fraction.test.ts`
 Expected: FAIL，提示找不到 `fraction` 模块。
 
-- [ ] **Step 3: 实现精确分数工具与共享类型**
+- [x] **Step 3: 实现精确分数工具与共享类型**
 
 ```ts
 export interface Fraction { numerator: number; denominator: number }
@@ -141,12 +141,12 @@ export const formatFraction = (value: Fraction) => `${value.numerator}/${value.d
 export const toPercent = (value: Fraction) => `${Number((value.numerator / value.denominator * 100).toFixed(2))}%`
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `npm test -- --run src/genetics/fraction.test.ts`
 Expected: 1 test PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/genetics
@@ -167,7 +167,7 @@ git commit -m "feat: add exact probability primitives"
 - Produces: `phenotypeKey(genotype: string): string`。
 - Produces: `calculateRandomMating(frequencies: Record<string, number>): PopulationResult`，按 Hardy–Weinberg 频率返回子代分布。
 
-- [ ] **Step 1: 写经典比例测试**
+- [x] **Step 1: 写经典比例测试**
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -196,12 +196,12 @@ describe('Mendelian cross engine', () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/genetics/engine.test.ts`
 Expected: FAIL，提示找不到 `engine` 模块。
 
-- [ ] **Step 3: 实现解析、配子和组合算法**
+- [x] **Step 3: 实现解析、配子和组合算法**
 
 ```ts
 export function parseGenotype(input: string): AllelePair[] {
@@ -225,12 +225,12 @@ export function calculateCross(parentA: string, parentB: string): CrossResult {
 }
 ```
 
-- [ ] **Step 4: 运行引擎测试并确认通过**
+- [x] **Step 4: 运行引擎测试并确认通过**
 
 Run: `npm test -- --run src/genetics/engine.test.ts`
 Expected: 4 tests PASS，概率总和为 1。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/genetics
@@ -249,7 +249,7 @@ git commit -m "feat: implement Mendelian cross engine"
 - Produces: `Experiment`, `ExperimentMode`, `EXPERIMENT_PRESETS`。
 - Produces: `loadHistory(): ExperimentRecord[]`, `saveExperiment(experiment, result): ExperimentRecord[]`, `deleteExperiment(id)`, `clearHistory()`。
 
-- [ ] **Step 1: 写记录上限和恢复测试**
+- [x] **Step 1: 写记录上限和恢复测试**
 
 ```ts
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -270,12 +270,12 @@ describe('experiment history', () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/experiments/history.test.ts`
 Expected: FAIL，提示找不到 `history`。
 
-- [ ] **Step 3: 实现案例与记录仓库**
+- [x] **Step 3: 实现案例与记录仓库**
 
 ```ts
 const STORAGE_KEY = 'genetics-observatory:history:v1'
@@ -292,12 +292,12 @@ export function deleteExperiment(id: string) { localStorage.setItem(STORAGE_KEY,
 export function clearHistory() { localStorage.removeItem(STORAGE_KEY) }
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `npm test -- --run src/experiments/history.test.ts`
 Expected: 2 tests PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/experiments
@@ -319,7 +319,7 @@ git commit -m "feat: add experiment presets and local history"
 - Consumes: `EXPERIMENT_PRESETS`。
 - Produces: `HomePage({ onStart, onOpenHistory })`，将所选预设传给实验台。
 
-- [ ] **Step 1: 写首页入口测试**
+- [x] **Step 1: 写首页入口测试**
 
 ```tsx
 it('starts a classic dihybrid experiment', async () => {
@@ -330,12 +330,12 @@ it('starts a classic dihybrid experiment', async () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/pages/HomePage.test.tsx`
 Expected: FAIL，提示找不到 `HomePage`。
 
-- [ ] **Step 3: 实现设计令牌、页眉、实验模块和最近记录区**
+- [x] **Step 3: 实现设计令牌、页眉、实验模块和最近记录区**
 
 ```css
 :root {
@@ -357,12 +357,12 @@ export function HomePage({ onStart, onOpenHistory }: HomePageProps) {
 }
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `npm test -- --run src/pages/HomePage.test.tsx`
 Expected: PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src
@@ -385,7 +385,7 @@ git commit -m "feat: build editorial home experience"
 - Consumes: `calculateCross(parentA, parentB)` and `saveExperiment(experiment, result)`。
 - Produces: `LabPage({ initialExperiment, onBack })`。
 
-- [ ] **Step 1: 写交互式计算测试**
+- [x] **Step 1: 写交互式计算测试**
 
 ```tsx
 it('updates the Punnett result when parents change', async () => {
@@ -404,12 +404,12 @@ it('shows inline validation for malformed genotypes', async () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/pages/LabPage.test.tsx`
 Expected: FAIL，提示找不到 `LabPage`。
 
-- [ ] **Step 3: 实现左右分栏实验台**
+- [x] **Step 3: 实现左右分栏实验台**
 
 ```tsx
 export function LabPage({ initialExperiment, onBack }: LabPageProps) {
@@ -422,12 +422,12 @@ export function LabPage({ initialExperiment, onBack }: LabPageProps) {
 }
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `npm test -- --run src/pages/LabPage.test.tsx`
 Expected: 2 tests PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src
@@ -449,7 +449,7 @@ git commit -m "feat: add interactive hybrid genetics lab"
 - Consumes: `CrossResult`, `loadHistory`, `deleteExperiment`, `clearHistory`。
 - Produces: `PresentationMode({ experiment, result, onExit })` and `HistoryDrawer({ onLoad, onClose })`。
 
-- [ ] **Step 1: 写逐步揭晓与历史删除测试**
+- [x] **Step 1: 写逐步揭晓与历史删除测试**
 
 ```tsx
 it('reveals one teaching step at a time', async () => {
@@ -467,12 +467,12 @@ it('asks before clearing all history', async () => {
 })
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `npm test -- --run src/components/PresentationMode.test.tsx src/components/HistoryDrawer.test.tsx`
 Expected: FAIL，组件尚不存在。
 
-- [ ] **Step 3: 实现演示步骤、记录抽屉和响应式样式**
+- [x] **Step 3: 实现演示步骤、记录抽屉和响应式样式**
 
 ```tsx
 const teachingSteps = ['parents', 'gametes', 'grid', 'distribution', 'summary'] as const
@@ -488,12 +488,12 @@ export function PresentationMode({ experiment, result, onExit }: PresentationMod
 .presentation { position: fixed; inset: 0; z-index: 100; background: var(--paper); font-size: clamp(18px, 2vw, 34px); }
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `npm test -- --run src/components/PresentationMode.test.tsx src/components/HistoryDrawer.test.tsx`
 Expected: 2 tests PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src
@@ -510,22 +510,22 @@ git commit -m "feat: add teaching mode and local history controls"
 - Consumes: 完整应用与全部测试。
 - Produces: 可部署的 `dist/` 静态站点。
 
-- [ ] **Step 1: 运行完整自动化测试**
+- [x] **Step 1: 运行完整自动化测试**
 
 Run: `npm test -- --run`
 Expected: 所有测试 PASS，无未处理异常。
 
-- [ ] **Step 2: 运行 TypeScript 与生产构建**
+- [x] **Step 2: 运行 TypeScript 与生产构建**
 
 Run: `npm run build`
 Expected: 命令退出码 0，并生成 `dist/index.html` 和静态资源。
 
-- [ ] **Step 3: 在浏览器检查核心路径**
+- [x] **Step 3: 在浏览器检查核心路径**
 
 Run: `npm run dev -- --host 127.0.0.1`
 Expected: 首页、双因子经典案例、实验台、教师演示与历史记录均可打开；桌面和窄屏无横向溢出。
 
-- [ ] **Step 4: 添加使用文档**
+- [x] **Step 4: 添加使用文档**
 
 ```md
 # 遗传观察所
@@ -533,7 +533,7 @@ Expected: 首页、双因子经典案例、实验台、教师演示与历史记�
 运行 `npm install && npm run dev` 启动本地开发环境。运行 `npm test -- --run` 验证遗传计算，运行 `npm run build` 生成可部署静态文件。
 ```
 
-- [ ] **Step 5: 提交最终验收结果**
+- [x] **Step 5: 提交最终验收结果**
 
 ```bash
 git add README.md docs/superpowers/plans/2026-09-04-genetics-observatory.md

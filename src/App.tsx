@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { HistoryDrawer } from './components/HistoryDrawer'
 import { PresentationMode } from './components/PresentationMode'
@@ -12,6 +12,10 @@ export default function App() {
   const [experiment, setExperiment] = useState<Experiment | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [presentation, setPresentation] = useState<{ experiment: Experiment; result: CrossResult } | null>(null)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [experiment])
 
   const loadExperiment = (next: Experiment) => {
     setExperiment(next)

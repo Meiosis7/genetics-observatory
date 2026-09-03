@@ -23,8 +23,21 @@ export function ExperimentForm({ experiment, error, onChange, onModeChange, onRe
   }
 
   const swapParents = () => onChange({ ...experiment, parentA: experiment.parentB, parentB: experiment.parentA })
-  const locus = experiment.loci[0]
-  const dominantFrequency = experiment.alleleFrequencies?.[locus.symbol] ?? 0.6
+  const updateLocus = (index: number, field: 'trait' | 'dominantLabel' | 'recessiveLabel', value: string) => onChange({ ...experiment, loci: experiment.loci.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item) })
+  const changeLocusCount = (locusCount: 1 | 2) => {
+    if (locusCount === experiment.locusCount) return
+    if (locusCount === 1) {
+      const first = experiment.loci[0]
+      onChange({ ...experiment, locusCount, parentA: experiment.parentA.slice(0, 2), parentB: experiment.parentB.slice(0, 2), loci: [first], alleleFrequencies: experiment.mode === 'random' ? { [first.symbol]: experiment.alleleFrequencies?.[first.symbol] ?? 0.6, [first.symbol.toLowerCase()]: experiment.alleleFrequencies?.[first.symbol.toLowerCase()] ?? 0.4 } : undefined })
+      return
+    }
+    const second = { symbol: 'B', trait: '种子形状', dominantLabel: '圆粒', recessiveLabel: '皱粒' }
+    const parentA = `${experiment.parentA.slice(0, 2)}Bb`
+    let parentB = `${experiment.parentB.slice(0, 2)}Bb`
+    if (experiment.mode === 'self') parentB = parentA
+    if (experiment.mode === 'testcross') parentB = `${experiment.loci[0].symbol.toLowerCase().repeat(2)}bb`
+    onChange({ ...experiment, locusCount, parentA, parentB, loci: [experiment.loci[0], second], alleleFrequencies: experiment.mode === 'random' ? { ...experiment.alleleFrequencies, B: 0.5, b: 0.5 } : undefined })
+  }
 
   return (
     <aside className="experiment-sidebar">
@@ -41,15 +54,21 @@ export function ExperimentForm({ experiment, error, onChange, onModeChange, onRe
         </div>
       </fieldset>
 
+      <fieldset className="field-group">
+        <legend>基因位点</legend>
+        <div className="locus-segments">
+          <button type="button" className={experiment.locusCount === 1 ? 'active' : ''} aria-pressed={experiment.locusCount === 1} onClick={() => changeLocusCount(1)}>单基因</button>
+          <button type="button" className={experiment.locusCount === 2 ? 'active' : ''} aria-pressed={experiment.locusCount === 2} onClick={() => changeLocusCount(2)}>双基因</button>
+        </div>
+      </fieldset>
+
       {experiment.mode === 'random' ? (
         <fieldset className="field-group frequency-group">
           <legend>群体等位基因频率</legend>
-          <div className="frequency-value"><span>{locus.symbol}</span><strong>{Math.round(dominantFrequency * 100)}%</strong></div>
-          <input aria-label={`${locus.symbol} 等位基因频率`} type="range" min="5" max="95" step="5" value={dominantFrequency * 100} onChange={(event) => {
-            const p = Number(event.target.value) / 100
-            onChange({ ...experiment, alleleFrequencies: { [locus.symbol]: p, [locus.symbol.toLowerCase()]: 1 - p } })
-          }} />
-          <div className="frequency-scale"><span>{locus.symbol.toLowerCase()} {Math.round((1 - dominantFrequency) * 100)}%</span><span>总和 100%</span></div>
+          {experiment.loci.map((locus) => {
+            const dominantFrequency = experiment.alleleFrequencies?.[locus.symbol] ?? 0.5
+            return <div className="frequency-control" key={locus.symbol}><div className="frequency-value"><span>{locus.symbol}</span><strong>{Math.round(dominantFrequency * 100)}%</strong></div><input aria-label={`${locus.symbol} 等位基因频率`} type="range" min="5" max="95" step="5" value={dominantFrequency * 100} onChange={(event) => { const p = Number(event.target.value) / 100; onChange({ ...experiment, alleleFrequencies: { ...experiment.alleleFrequencies, [locus.symbol]: p, [locus.symbol.toLowerCase()]: 1 - p } }) }} /><div className="frequency-scale"><span>{locus.symbol.toLowerCase()} {Math.round((1 - dominantFrequency) * 100)}%</span><span>总和 100%</span></div></div>
+          })}
         </fieldset>
       ) : (
         <>
@@ -66,7 +85,7 @@ export function ExperimentForm({ experiment, error, onChange, onModeChange, onRe
           <fieldset className="field-group">
             <legend>性状说明</legend>
             <div className="trait-table">
-              {experiment.loci.map((item) => <div className="trait-row" key={item.symbol}><span className="allele-badge">{item.symbol}</span><span><b>{item.trait}</b><small>{item.dominantLabel} / {item.recessiveLabel}</small></span></div>)}
+              {experiment.loci.map((item, index) => <div className="trait-row trait-editor" key={item.symbol}><span className="allele-badge">{item.symbol}</span><div className="trait-fields"><input aria-label={`${item.symbol} 位点性状名称`} value={item.trait} onChange={(event) => updateLocus(index, 'trait', event.target.value)} /><div><input aria-label={`${item.symbol} 位点显性表现`} value={item.dominantLabel} onChange={(event) => updateLocus(index, 'dominantLabel', event.target.value)} /><span>/</span><input aria-label={`${item.symbol} 位点隐性表现`} value={item.recessiveLabel} onChange={(event) => updateLocus(index, 'recessiveLabel', event.target.value)} /></div></div></div>)}
             </div>
           </fieldset>
         </>

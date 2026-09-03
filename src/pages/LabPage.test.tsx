@@ -30,4 +30,20 @@ describe('LabPage', () => {
     await userEvent.type(parentA, 'Ab')
     expect(screen.getByRole('alert')).toHaveTextContent('同一位点')
   })
+
+  it('switches a cross between one and two loci', async () => {
+    render(<LabPage initialExperiment={cloneExperiment(doubleGenePreset)} onBack={() => undefined} />)
+    await userEvent.click(screen.getByRole('button', { name: '单基因' }))
+    expect(screen.getByLabelText('亲本 P₁ 基因型')).toHaveValue('Aa')
+    expect(screen.getByLabelText('亲本 P₂ 基因型')).toHaveValue('Aa')
+    expect(screen.getAllByTestId('punnett-cell')).toHaveLength(4)
+  })
+
+  it('uses custom phenotype descriptions in the result', async () => {
+    render(<LabPage initialExperiment={cloneExperiment(singleGenePreset)} onBack={() => undefined} />)
+    const dominantLabel = screen.getByLabelText('A 位点显性表现')
+    await userEvent.clear(dominantLabel)
+    await userEvent.type(dominantLabel, '高茎')
+    expect(screen.getByTestId('phenotype-A_')).toHaveTextContent('高茎')
+  })
 })
