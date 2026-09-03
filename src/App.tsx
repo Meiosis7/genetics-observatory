@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import type { Experiment } from './experiments/types'
 import { HomePage } from './pages/HomePage'
+import { LabPage } from './pages/LabPage'
 import './styles/global.css'
 
 export default function App() {
@@ -11,9 +12,7 @@ export default function App() {
     <div className="app-shell">
       <AppHeader onHome={() => setExperiment(null)} onOpenHistory={() => undefined} />
       {experiment ? (
-        <main className="page placeholder-page">
-          <div><p className="eyebrow">实验准备完成</p><h2>{experiment.title}</h2><button className="secondary-button" onClick={() => setExperiment(null)}>返回首页</button></div>
-        </main>
+        <LabPage initialExperiment={experiment} onBack={() => setExperiment(null)} />
       ) : (
         <HomePage onStart={setExperiment} onOpenHistory={() => undefined} />
       )}

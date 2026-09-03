@@ -1,4 +1,3 @@
-import type { CrossResult } from '../genetics/types'
 import type { Experiment, ExperimentRecord } from './types'
 
 const STORAGE_KEY = 'genetics-observatory:history:v1'
@@ -26,7 +25,7 @@ function writeHistory(records: ExperimentRecord[]): ExperimentRecord[] {
   return records
 }
 
-export function saveExperiment(experiment: Experiment, result: CrossResult): ExperimentRecord[] {
+export function saveExperiment(experiment: Experiment, result: { summary: string }): ExperimentRecord[] {
   const record: ExperimentRecord = {
     id: recordId(),
     createdAt: new Date().toISOString(),
