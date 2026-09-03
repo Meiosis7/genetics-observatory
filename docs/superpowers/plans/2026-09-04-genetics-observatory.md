@@ -165,6 +165,7 @@ git commit -m "feat: add exact probability primitives"
 - Produces: `generateGametes(genotype: string): Gamete[]`。
 - Produces: `calculateCross(parentA: string, parentB: string): CrossResult`。
 - Produces: `phenotypeKey(genotype: string): string`。
+- Produces: `calculateRandomMating(frequencies: Record<string, number>): PopulationResult`，按 Hardy–Weinberg 频率返回子代分布。
 
 - [ ] **Step 1: 写经典比例测试**
 
@@ -188,6 +189,9 @@ describe('Mendelian cross engine', () => {
   })
   it('rejects malformed genotypes', () => {
     expect(() => calculateCross('Aab', 'Aa')).toThrow('基因型格式')
+  })
+  it('calculates random mating from allele frequencies', () => {
+    expect(calculateRandomMating({ A: 0.6, a: 0.4 }).genotypeFrequencies).toEqual({ AA: 0.36, Aa: 0.48, aa: 0.16 })
   })
 })
 ```
