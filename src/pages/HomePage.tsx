@@ -16,6 +16,7 @@ import type { Experiment, ExperimentMode } from '../experiments/types'
 interface HomePageProps {
   onStart: (experiment: Experiment) => void
   onOpenHistory: () => void
+  onOpenAdvanced?: () => void
 }
 
 const modeDetails: Array<{ mode: ExperimentMode; description: string; icon: typeof Dna }> = [
@@ -28,12 +29,13 @@ const modeDetails: Array<{ mode: ExperimentMode; description: string; icon: type
 
 const specimenCells = ['AABB', 'AABb', 'AaBB', 'AaBb', 'AABb', 'AAbb', 'AaBb', 'Aabb', 'AaBB', 'AaBb', 'aaBB', 'aaBb', 'AaBb', 'Aabb', 'aaBb', 'aabb']
 
-export function HomePage({ onStart, onOpenHistory }: HomePageProps) {
+export function HomePage({ onStart, onOpenHistory, onOpenAdvanced }: HomePageProps) {
   const classicDouble = EXPERIMENT_PRESETS.find((item) => item.id === 'classic-double')!
   const classics = EXPERIMENT_PRESETS.slice(0, 3)
 
   return (
     <div className="page">
+      {onOpenAdvanced && <section className="topic-home-entry"><div><h2>高中遗传 · 专题工具箱</h2><p>致死筛选、伴性遗传、系谱、DNA 与细胞分裂……11 个专题，带计算与推导。</p></div><button onClick={onOpenAdvanced}>进入专题工具箱 <ArrowRight size={17} /></button></section>}
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">Interactive Genetics Lab · 01</p>
@@ -106,7 +108,7 @@ export function HomePage({ onStart, onOpenHistory }: HomePageProps) {
 
       <footer className="home-footer">
         <div className="privacy-note"><LockKeyhole size={16} /><span>无需注册 · 所有计算与实验记录只保存在你的浏览器中</span></div>
-        <span>遗传观察所 · 首版基础孟德尔遗传</span>
+        <span>遗传观察所 · 高中遗传计算与推导</span>
       </footer>
     </div>
   )

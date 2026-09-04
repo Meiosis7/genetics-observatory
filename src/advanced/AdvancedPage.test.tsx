@@ -1,0 +1,61 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+import { AdvancedPage } from './AdvancedPage'
+
+describe('high-school workbench', () => {
+  it('opens lethal selection with the standard 75 percent example', () => {
+    render(<AdvancedPage onBack={() => undefined} />)
+    expect(screen.getByRole('heading', { name: '致死与存活筛选' })).toBeInTheDocument()
+    expect(screen.getByTestId('metric-合子存活率')).toHaveTextContent('75%')
+    expect(screen.getByRole('table')).toHaveTextContent('66.6667%')
+  })
+  it('changes rules, hides stale results on invalid input, and resets', async () => {
+    render(<AdvancedPage onBack={() => undefined} />)
+    await userEvent.selectOptions(screen.getByLabelText('A 位点合子致死'), 'none')
+    expect(screen.getByTestId('metric-合子存活率')).toHaveTextContent('100%')
+    await userEvent.clear(screen.getByLabelText('命中规则的合子致死率（%）'))
+    expect(screen.getByRole('alert')).toHaveTextContent('致死率')
+    expect(screen.queryByTestId('metric-合子存活率')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '重置本题' }))
+    expect(screen.getByTestId('metric-合子存活率')).toHaveTextContent('75%')
+  })
+  it('navigates to sex linkage and uses its default valid settings', async () => {
+    render(<AdvancedPage onBack={() => undefined} />)
+    await userEvent.click(screen.getByRole('button', { name: /伴性遗传/ }))
+    expect(screen.getByRole('heading', { name: '伴性遗传' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('遗传模型')).toHaveValue('xr')
+  })
+  it('keeps interaction parents compatible when choosing single-locus models', async () => {
+    render(<AdvancedPage onBack={() => undefined} initialTopic="interaction" />)
+    await userEvent.selectOptions(screen.getByLabelText('表现型模型'), 'incomplete')
+    expect(screen.getByLabelText('亲本 P₁')).toHaveValue('Aa')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+  it('handles clipboard failure honestly', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(new Error('denied'))
+    render(<AdvancedPage onBack={() => undefined} />)
+    await user.click(screen.getByRole('button', { name: '复制结果' }))
+    expect(screen.getByRole('status')).toHaveTextContent('复制失败')
+  })
+  it('provides valid results for every topic default', async () => {
+    const { TOPICS } = await import('./catalog')
+    for (const topic of TOPICS) {
+      const report = topic.calculate(topic.defaults)
+      expect(report.summary, topic.id).not.toMatch(/NaN|Infinity|undefined/)
+      expect(report.steps.length, topic.id).toBeGreaterThan(0)
+      report.distributions.forEach(d => {
+        d.rows.forEach(row => expect(row.value).toBeGreaterThanOrEqual(0))
+        if (d.rows.length) expect(d.rows.reduce((sum, r) => sum + r.value, 0), `${topic.id}: ${d.title}`).toBeCloseTo(1, 8)
+      })
+    }
+  })
+  it('offers navigation back to the basic experiments', async () => {
+    const onBack = vi.fn()
+    render(<AdvancedPage onBack={onBack} />)
+    await userEvent.click(within(screen.getByRole('navigation', { name: '高中专题' })).getByRole('button', { name: /基础实验/ }))
+    expect(onBack).toHaveBeenCalledOnce()
+  })
+})
