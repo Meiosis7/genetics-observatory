@@ -15,7 +15,7 @@
 .topic-heading { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); margin-bottom: 28px; }
 .topic-heading p { font: 12px var(--font-mono, monospace); letter-spacing: .08em; margin: 0 0 14px; color: var(--muted); }
 .topic-heading p span { background: var(--sage); color: var(--ink); padding: 4px 8px; border-radius: 4px; margin-left: 10px; letter-spacing: 0; }
-.topic-heading h2 { font-family: var(--font-serif); font-size: clamp(27px, 3vw, 40px); line-height: 1.25; margin: 0 0 12px; letter-spacing: -.025em; }
+.topic-heading h2 { font-family: var(--font-display); font-size: clamp(27px, 3vw, 40px); line-height: 1.25; margin: 0 0 12px; letter-spacing: -.025em; }
 .topic-intro { font-size: 16px; line-height: 1.7; color: var(--ink-soft); max-width: 650px; }
 .topic-number { font-family: Georgia, serif; font-style: italic; font-size: 76px; line-height: 1; color: var(--coral); opacity: .8; align-self: center; }
 .topic-workbench { display: grid; grid-template-columns: minmax(240px, 290px) minmax(0, 1fr); align-items: start; gap: 26px; }

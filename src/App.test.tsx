@@ -13,6 +13,7 @@ describe('App', () => {
 
   it('opens the high-school workbench from the header', async () => {
     render(<App />)
+    expect(screen.getByRole('button', { name: '高中专题' })).toHaveAttribute('aria-label', '高中专题')
     await userEvent.click(screen.getByRole('button', { name: '高中专题' }))
     expect(screen.getByRole('heading', { name: '致死与存活筛选' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '返回遗传观察所首页' }))

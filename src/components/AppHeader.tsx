@@ -17,8 +17,8 @@ export function AppHeader({ onHome, onOpenHistory, onOpenAdvanced }: AppHeaderPr
         </span>
       </button>
       <nav className="header-actions" aria-label="主导航">
-        {onOpenAdvanced && <button className="header-link" onClick={onOpenAdvanced}><FlaskConical size={16} /><span>高中专题</span></button>}
-        <button className="header-link" onClick={onOpenHistory}>
+        {onOpenAdvanced && <button className="header-link" aria-label="高中专题" title="高中专题" onClick={onOpenAdvanced}><FlaskConical size={16} /><span>高中专题</span></button>}
+        <button className="header-link" aria-label="实验记录" title="实验记录" onClick={onOpenHistory}>
           <History size={16} /> <span>实验记录</span>
         </button>
       </nav>

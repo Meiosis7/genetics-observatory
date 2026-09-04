@@ -9,6 +9,14 @@ import {
 const value = (r: ReturnType<typeof dnaReport>, label: string) =>
   r.metrics.find((x) => x.label === label)?.value
 describe('curriculum engines', () => {
+  it('explains S phase without claiming zero chromatids double', () => {
+    for (const division of ['mitosis', 'meiosis']) {
+      const report = divisionReport({ diploid: '46', division })
+      expect(report.steps).toContain(
+        'S 期 DNA 含量加倍，每条染色体形成两条姐妹染色单体，染色体数不变。',
+      )
+    }
+  })
   it('uses Chinese field names in validation errors', () => {
     expect(() => selfingReport({ generations: '', selection: 'none' })).toThrow(
       '自交代数',
