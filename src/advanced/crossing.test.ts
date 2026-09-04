@@ -52,6 +52,16 @@ describe('linked crosses', () => {
 })
 
 describe('nonstandard phenotype ratios', () => {
+  it('summarizes actual homozygous crosses and labels the classic ratio as an example', () => {
+    for (const [parent, phenotype] of [['AABB', '两种显性基因同时存在'], ['aabb', '缺少至少一种显性基因']]) {
+      const report = interactionReport({ parentA: parent, parentB: parent, model: 'complementary' })
+      expect(report.summary).toContain(`${parent} × ${parent}`)
+      expect(report.summary).toContain(`${phenotype} 100%`)
+      expect(report.summary).not.toContain('9:7')
+      expect(rows(report, '表现型分布')).toEqual({ [phenotype]: 1 })
+      expect(report.steps.some(step => step.includes('AaBb × AaBb 示例比例') && step.includes('9:7'))).toBe(true)
+    }
+  })
   it('derives complementary 9:7 and duplicate dominant 15:1', () => {
     const common = { parentA: 'AaBb', parentB: 'AaBb' }
     expect(Object.values(rows(interactionReport({ ...common, model: 'complementary' }), '表现型分布'))).toEqual([9 / 16, 7 / 16])

@@ -136,11 +136,15 @@ export function interactionReport(v: Values): Report {
     const key = phenotypeKey(g)
     return rule.groups[['A_B_', 'A_bb', 'aaB_', 'aabb'].indexOf(key)]
   }
+  const actualPhenotypes = phenotypes(genotypes, classify)
+  const actualSummary = Object.entries(actualPhenotypes)
+    .map(([label, probability]) => `${label} ${percent(probability)}`)
+    .join('；')
   return {
-    summary: single ? '杂合子单列为一种表现型，基因型分离规律不变。' : rule.note,
-    metrics: [{ label: '子代基因型', value: `${Object.keys(genotypes).length} 种` }, { label: '表现型', value: `${Object.keys(phenotypes(genotypes, classify)).length} 类` }],
-    distributions: [distribution('基因型分布', genotypes), distribution('表现型分布', phenotypes(genotypes, classify))],
-    steps: ['先按亲本产生的配子计算基因型概率。', single ? 'AA、Aa、aa 对应三种不同表型；不完全显性是中间表型，共显性是两种性状共同表达。' : `再按以下对应关系合并：${rule.note}。`, '特殊表现型比例源于基因型到表型的映射变化，并不意味着分离规律失效。'],
+    summary: `${v.parentA} × ${v.parentB}：实际表现型概率为 ${actualSummary}。`,
+    metrics: [{ label: '子代基因型', value: `${Object.keys(genotypes).length} 种` }, { label: '表现型', value: `${Object.keys(actualPhenotypes).length} 类` }],
+    distributions: [distribution('基因型分布', genotypes), distribution('表现型分布', actualPhenotypes)],
+    steps: ['先按亲本产生的配子计算基因型概率。', single ? 'AA、Aa、aa 对应三种不同表型；不完全显性是中间表型，共显性是两种性状共同表达。' : `按模型合并表现型；AaBb × AaBb 示例比例：${rule.note}。`, '特殊表现型比例源于基因型到表型的映射变化，并不意味着分离规律失效。'],
     notes: ['比例示例只适用于相应杂合子自交；更换亲本后请以实际分布为准。', '双基因模型默认独立分配、无致死、完全外显；这是指定互作机制的教学模型，不从比例单独确定分子机制。'],
   }
 }
