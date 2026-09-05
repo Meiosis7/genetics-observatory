@@ -13,6 +13,8 @@ export default function App() {
   const [experiment, setExperiment] = useState<Experiment | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [advanced, setAdvanced] = useState(false)
+  const [advancedTopic, setAdvancedTopic] = useState('lethal')
+  const openAdvanced = (topicId = 'lethal') => { setAdvancedTopic(topicId); setAdvanced(true) }
   const [loadKey, setLoadKey] = useState(0)
   const [presentation, setPresentation] = useState<{ experiment: Experiment; result: CrossResult } | null>(null)
 
@@ -29,11 +31,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <AppHeader onHome={() => { setExperiment(null); setAdvanced(false) }} onOpenHistory={() => setHistoryOpen(true)} onOpenAdvanced={() => setAdvanced(true)} />
-      {advanced ? <AdvancedPage onBack={() => { setAdvanced(false); setExperiment(null) }} /> : experiment ? (
+      <AppHeader onHome={() => { setExperiment(null); setAdvanced(false) }} onOpenHistory={() => setHistoryOpen(true)} onOpenAdvanced={() => openAdvanced()} />
+      {advanced ? <AdvancedPage key={advancedTopic} initialTopic={advancedTopic} onBack={() => { setAdvanced(false); setExperiment(null) }} /> : experiment ? (
         <LabPage key={loadKey} initialExperiment={experiment} onBack={() => setExperiment(null)} onPresent={(nextExperiment, result) => setPresentation({ experiment: nextExperiment, result })} />
       ) : (
-        <HomePage onStart={setExperiment} onOpenHistory={() => setHistoryOpen(true)} onOpenAdvanced={() => setAdvanced(true)} />
+        <HomePage onStart={setExperiment} onOpenHistory={() => setHistoryOpen(true)} onOpenAdvanced={openAdvanced} />
       )}
       {historyOpen && <HistoryDrawer onLoad={loadExperiment} onClose={() => setHistoryOpen(false)} />}
       {presentation && <PresentationMode experiment={presentation.experiment} result={presentation.result} onExit={() => setPresentation(null)} />}

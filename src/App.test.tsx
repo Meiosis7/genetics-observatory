@@ -40,3 +40,9 @@ describe('App', () => {
     scrollTo.mockRestore()
   })
 })
+
+it('routes a homepage question to its matching workbench', async () => {
+  render(<App />)
+  await userEvent.click(screen.getByRole('button', { name: /复制后，最初的两条链去了哪里/ }))
+  expect(screen.getByRole('heading', { name: 'DNA 与半保留复制' })).toBeInTheDocument()
+})

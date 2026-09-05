@@ -1,115 +1,73 @@
-import {
-  ArrowRight,
-  BookOpenCheck,
-  Dna,
-  FlaskConical,
-  GitBranch,
-  LockKeyhole,
-  RefreshCcw,
-  Repeat2,
-  Shuffle,
-} from 'lucide-react'
-import { EditorialCard } from '../components/EditorialCard'
+import { useState } from 'react'
+import { ArrowRight, ArrowUpRight, BookOpenCheck, Dna, FlaskConical, GitBranch, LockKeyhole, RefreshCcw, Repeat2, Search, Shuffle, Sparkles } from 'lucide-react'
 import { EXPERIMENT_PRESETS, MODE_LABELS, cloneExperiment, presetForMode } from '../experiments/presets'
 import type { Experiment, ExperimentMode } from '../experiments/types'
+import { calculateCross } from '../genetics/engine'
+import { TOPICS } from '../advanced/catalog'
+import { PATHS, QUESTIONS } from './exploration'
+import './exploration.css'
 
 interface HomePageProps {
   onStart: (experiment: Experiment) => void
   onOpenHistory: () => void
-  onOpenAdvanced?: () => void
+  onOpenAdvanced?: (topicId?: string) => void
 }
-
-const modeDetails: Array<{ mode: ExperimentMode; description: string; icon: typeof Dna }> = [
-  { mode: 'cross', description: '自由设置两个亲本，观察等位基因如何重新组合。', icon: GitBranch },
-  { mode: 'self', description: '同一个体产生雌雄配子，验证经典分离比。', icon: RefreshCcw },
-  { mode: 'testcross', description: '与隐性纯合子杂交，反推未知亲本的基因型。', icon: FlaskConical },
-  { mode: 'backcross', description: '让子一代与亲本再次杂交，比较后代差异。', icon: Repeat2 },
-  { mode: 'random', description: '从等位基因频率出发，观察群体自由交配结果。', icon: Shuffle },
+const MODES: Array<{ mode: ExperimentMode; hint: string; icon: typeof Dna }> = [
+  { mode: 'cross', hint: '组合两个亲本', icon: GitBranch },
+  { mode: 'self', hint: '观察性状分离', icon: RefreshCcw },
+  { mode: 'testcross', hint: '检验未知基因型', icon: FlaskConical },
+  { mode: 'backcross', hint: '让子代回到亲本', icon: Repeat2 },
+  { mode: 'random', hint: '走进一个群体', icon: Shuffle },
 ]
 
-const specimenCells = ['AABB', 'AABb', 'AaBB', 'AaBb', 'AABb', 'AAbb', 'AaBb', 'Aabb', 'AaBB', 'AaBb', 'aaBB', 'aaBb', 'AaBb', 'Aabb', 'aaBb', 'aabb']
-
 export function HomePage({ onStart, onOpenHistory, onOpenAdvanced }: HomePageProps) {
-  const classicDouble = EXPERIMENT_PRESETS.find((item) => item.id === 'classic-double')!
-  const classics = EXPERIMENT_PRESETS.slice(0, 3)
+  const [path, setPath] = useState('all')
+  const [query, setQuery] = useState('')
+  const [parent, setParent] = useState('Aa')
+  const [revealed, setRevealed] = useState(false)
+  const preview = calculateCross('Aa', parent)
+  const matching = QUESTIONS.filter(question => (path === 'all' || question.path === path) && `${question.question} ${question.hint} ${TOPICS.find(t => t.id === question.id)?.title}`.toLowerCase().includes(query.trim().toLowerCase()))
+  const dominant = preview.phenotypeDistribution.find(row => row.label === 'A_')!
+  const dominantProbability = dominant.probability.numerator / dominant.probability.denominator
+  const classicDouble = EXPERIMENT_PRESETS.find(item => item.id === 'classic-double')!
+  return <main className="explore-page">
+    <section className="explore-hero" aria-labelledby="explore-title">
+      <div className="explore-hero-copy">
+        <p className="explore-eyebrow"><span /> A FIELD GUIDE TO INHERITANCE</p>
+        <h2 id="explore-title">遗传有规律。<br /><em>答案，自己发现。</em></h2>
+        <p className="explore-lede">换一个亲本，改变一条条件。<br />让抽象的字母，成为看得见的推理。</p>
+        <div className="explore-hero-actions"><a href="#exploration-atlas" className="explore-primary">选择一个问题 <ArrowRight size={18} /></a><button onClick={() => onStart(cloneExperiment(classicDouble))}>开始一次实验 <ArrowUpRight size={17} /></button></div>
+        <div className="explore-method"><span>01 提出猜想</span><i /><span>02 改变条件</span><i /><span>03 验证规律</span></div>
+      </div>
+      <article className="live-specimen" aria-label="试一试单基因杂交">
+        <div className="live-specimen-heading"><span>一分钟探索 / 001</span><span className="live-badge">可交互</span></div>
+        <h3>只换一个字母，<br />后代会怎样？</h3>
+        <div className="live-parents"><div><small>亲本 P₁</small><strong>Aa</strong></div><span>×</span><div><small>亲本 P₂ · 点选</small><div className="live-parent-options">{['Aa', 'aa'].map(value => <button key={value} aria-pressed={parent === value} aria-label={`把亲本 P₂ 改为 ${value}`} onClick={() => { setParent(value); setRevealed(false) }}>{value}</button>)}</div></div></div>
+        <div className="live-flow"><span>配子随机结合</span><ArrowRight size={15} /><span>{preview.cells.length} 种等概率组合</span></div>
+        <div className="live-offspring" aria-label="子代基因型组合">{preview.cells.map((cell, i) => <div className={cell.phenotype === 'A_' ? 'dominant' : 'recessive'} key={`${parent}-${i}`}><strong>{cell.genotype}</strong><small>{cell.phenotype === 'A_' ? '显性' : '隐性'}</small></div>)}</div>
+        {revealed ? <div className="live-answer" aria-live="polite"><div><span>显性 ∶ 隐性</span><strong data-testid="preview-ratio">{preview.phenotypeDistribution.map(row => row.count).join('∶')}</strong></div><div className="live-ratio-track"><span style={{ width: `${dominantProbability * 100}%` }} /></div><p>单基因、完全显性；每次受精独立发生。</p></div> : <button className="live-reveal" aria-label="揭晓后代比例" onClick={() => setRevealed(true)}>先猜一猜，再揭晓后代比例 <ArrowRight size={16} /></button>}
+        <p className="live-footnote">格子表示可能组合，不代表每窝必有这些后代。</p>
+      </article>
+    </section>
 
-  return (
-    <div className="page">
-      {onOpenAdvanced && <section className="topic-home-entry"><div><h2>高中遗传 · 专题工具箱</h2><p>致死筛选、伴性遗传、系谱、DNA 与细胞分裂……11 个专题，带计算与推导。</p></div><button onClick={onOpenAdvanced}>进入专题工具箱 <ArrowRight size={17} /></button></section>}
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Interactive Genetics Lab · 01</p>
-          <h2>把遗传规律，<br />放到<em>眼前</em>。</h2>
-          <p className="hero-lede">设置亲本、观察配子、推演子代。从基因型到表现型，每一步都有证据，而不是只给你一个答案。</p>
-          <div className="hero-actions">
-            <button className="primary-button" onClick={() => onStart(cloneExperiment(classicDouble))}>
-              开始一次实验 <ArrowRight size={18} />
-            </button>
-            <button className="secondary-button" onClick={onOpenHistory}>查看实验记录</button>
-          </div>
-        </div>
-        <div className="hero-specimen" aria-label="双因子杂交结果示意图">
-          <div className="specimen-orbit" aria-hidden="true" />
-          <article className="specimen-card">
-            <div className="specimen-top">
-              <div><span className="specimen-index">SPECIMEN · 021</span><h3>双因子杂交</h3></div>
-              <span className="ratio-stamp">9∶3∶3∶1</span>
-            </div>
-            <div className="parent-row">
-              <div className="parent-chip"><span>亲本 P₁</span>AaBb</div>
-              <div className="cross-mark">×</div>
-              <div className="parent-chip"><span>亲本 P₂</span>AaBb</div>
-            </div>
-            <div className="mini-grid" aria-hidden="true">
-              {specimenCells.map((cell, index) => <span className="mini-cell" key={`${cell}-${index}`}>{cell}</span>)}
-            </div>
-            <p className="specimen-note">16 种等概率组合 · 双显性表现型出现概率为 9/16</p>
-          </article>
-        </div>
-      </section>
+    <section className="exploration-atlas" id="exploration-atlas" aria-labelledby="atlas-title">
+      <div className="atlas-heading"><div><p className="explore-eyebrow">THE EXPLORATION ATLAS / 探索地图</p><h2 id="atlas-title">你想弄明白什么？</h2></div><label className="atlas-search"><Search size={18} /><input aria-label="搜索探索问题" type="search" placeholder="搜问题、知识点，如 DNA" value={query} onChange={event => setQuery(event.target.value)} /></label></div>
+      <div className="atlas-paths" aria-label="探索路径">{PATHS.map(item => <button key={item.id} aria-pressed={path === item.id} onClick={() => setPath(item.id)}>{item.title}</button>)}</div>
+      <div className="atlas-caption"><span>{PATHS.find(item => item.id === path)?.description}</span><span>{matching.length} 个研究问题</span></div>
+      <div className="question-grid">{matching.map(question => {
+        const topic = TOPICS.find(t => t.id === question.id)!
+        return <button className={`question-card path-${question.path}`} key={question.id} onClick={() => onOpenAdvanced?.(question.id)} disabled={!onOpenAdvanced}>
+          <div className="question-top"><span>{topic.title}</span>{topic.tag === '拓展' ? <small>拓展</small> : <span className="question-index">{String(QUESTIONS.indexOf(question) + 1).padStart(2, '0')}</span>}</div>
+          <div className="question-mark" aria-hidden="true">{question.mark}</div><h3>{question.question}</h3><p>{question.hint}</p><div className="question-action">{question.action}<ArrowUpRight size={19} /></div>
+        </button>
+      })}</div>
+      {!matching.length && <div className="atlas-empty"><Search size={28} /><h3>还没找到这个问题</h3><p>试试“血型”“自交”或“染色体”，也可以查看全部探索。</p><button className="secondary-button" onClick={() => { setQuery(''); setPath('all') }}>查看全部探索</button></div>}
+    </section>
 
-      <section className="section section-rule" aria-labelledby="modes-title">
-        <div className="section-heading">
-          <div><span className="section-number">01 / EXPERIMENT</span><h2 id="modes-title">选择实验方式</h2></div>
-          <p>不必记住计算流程。选择一个研究问题，观察所会引导你完成后面的每一步。</p>
-        </div>
-        <div className="mode-grid">
-          {modeDetails.map(({ mode, description, icon: Icon }, index) => (
-            <EditorialCard key={mode} onClick={() => onStart(presetForMode(mode))} aria-label={`开始${MODE_LABELS[mode]}实验`}>
-              <span className="mode-index">0{index + 1}</span>
-              <Icon className="mode-icon" size={32} strokeWidth={1.6} />
-              <h3>{MODE_LABELS[mode]}</h3>
-              <p>{description}</p>
-              <span className="mode-arrow"><ArrowRight size={15} /></span>
-            </EditorialCard>
-          ))}
-        </div>
-      </section>
+    <section className="explore-bench" aria-labelledby="bench-title"><div className="atlas-heading"><div><p className="explore-eyebrow">THE OPEN BENCH / 自由实验台</p><h2 id="bench-title">有自己的题目？从这里开始。</h2></div><p>自定义性状与亲本，观察配子、<br />潘尼特方格和每一步概率。</p></div><div className="bench-modes">{MODES.map(({ mode, hint, icon: Icon }, i) => <button key={mode} onClick={() => onStart(presetForMode(mode))} aria-label={`开始${MODE_LABELS[mode]}实验`}><span>0{i + 1}<Icon size={23} strokeWidth={1.5} /></span><h3>{MODE_LABELS[mode]}</h3><p>{hint}</p><ArrowRight size={18} /></button>)}</div></section>
 
-      <section className="section section-rule" aria-labelledby="classic-title">
-        <div className="section-heading">
-          <div><span className="section-number">02 / CLASSIC CASES</span><h2 id="classic-title">从经典问题开始</h2></div>
-          <p>案例已设置好性状与亲本。你可以直接播放推导，也可以把参数改成自己的题目。</p>
-        </div>
-        <div className="classic-grid">
-          {classics.map((experiment, index) => (
-            <article className={`classic-card ${index === 0 ? 'featured' : ''}`} key={experiment.id}>
-              <div className="classic-meta"><span>CASE · 0{index + 1}</span><BookOpenCheck size={17} /></div>
-              <h3>{experiment.title}</h3>
-              <p>{experiment.loci.map((locus) => `${locus.dominantLabel} / ${locus.recessiveLabel}`).join(' · ')}</p>
-              <div className="genotype-line">{experiment.parentA}<span>×</span>{experiment.parentB}</div>
-              <button className="text-button" onClick={() => onStart(cloneExperiment(experiment))} aria-label={`打开${experiment.title}`}>
-                打开案例 <ArrowRight size={16} />
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <footer className="home-footer">
-        <div className="privacy-note"><LockKeyhole size={16} /><span>无需注册 · 所有计算与实验记录只保存在你的浏览器中</span></div>
-        <span>遗传观察所 · 高中遗传计算与推导</span>
-      </footer>
-    </div>
-  )
+    <section className="explore-classics" aria-labelledby="classics-title"><div><BookOpenCheck size={23} /><h2 id="classics-title">从经典实验出发</h2><p>把课本里的比例，亲手推一遍。</p></div>{EXPERIMENT_PRESETS.slice(0, 3).map((experiment, i) => <button key={experiment.id} onClick={() => onStart(cloneExperiment(experiment))}><small>CASE 0{i + 1}</small><h3>{experiment.title}</h3><p>{experiment.parentA} × {experiment.parentB}</p><ArrowUpRight size={19} /></button>)}</section>
+    <aside className="explore-teaching"><Sparkles size={23} /><div><strong>把观察所带进课堂。</strong><p>逐步揭晓推导，先讨论再展示答案；保存实验条件，下次继续探索。</p></div><button onClick={onOpenHistory}>打开基础实验记录 <ArrowRight size={16} /></button></aside>
+    <footer className="explore-footer"><span><LockKeyhole size={15} />无需注册 · 本地计算 · 数据保存在当前浏览器</span><span>遗传观察所 / 为好奇心而建</span></footer>
+  </main>
 }

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowUpRight, Copy, FlaskConical, Printer, RotateCcw } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Copy, FlaskConical, Printer, RotateCcw, Search, Save, Trash2, BookOpen } from 'lucide-react'
 import { TOPICS } from './catalog'
 import { ReportView } from './ReportView'
-import type { Values } from './types'
+import { GuidedReport } from './GuidedReport'
+import { readNotebook, writeNotebook, type NotebookEntry } from './notebook'
+import type { Values, Report } from './types'
 import './advanced.css'
 
 export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () => void; initialTopic?: string }) {
@@ -10,6 +12,14 @@ export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () =
   const [topicId, setTopicId] = useState(initial.id)
   const [values, setValues] = useState<Values>({ ...initial.defaults })
   const [notice, setNotice] = useState('')
+  const [query, setQuery] = useState('')
+  const [drafts, setDrafts] = useState<Record<string, Values>>({})
+  const [notebook, setNotebook] = useState(readNotebook)
+  const [name, setName] = useState('')
+  const [baseline, setBaseline] = useState<{ topicId: string; report: Report; conditions: string } | null>(null)
+  const [guided, setGuided] = useState(false)
+  const [replayKey, setReplayKey] = useState(0)
+  const visibleTopics = TOPICS.filter(item => `${item.title} ${item.intro} ${item.tag} ${item.examples?.map(e => e.label).join(' ') ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()))
   const topic = TOPICS.find(item => item.id === topicId)!
   const outcome = useMemo(() => {
     try { return { report: topic.calculate(values), error: '' } }
@@ -19,8 +29,11 @@ export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () =
   useEffect(() => { setNotice('') }, [values, topicId])
   const changeTopic = (id: string) => {
     const next = TOPICS.find(item => item.id === id)!
+    setDrafts(current => ({ ...current, [topicId]: { ...values } }))
+    setName('')
     setTopicId(id)
-    setValues({ ...next.defaults })
+    setValues({ ...(id === topicId ? values : drafts[id] ?? next.defaults) })
+    setReplayKey(key => key + 1)
     window.scrollTo({ top: 0, behavior: 'auto' })
   }
   const changeValue = (key: string, value: string) => {
@@ -33,6 +46,27 @@ export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () =
       }
       return next
     })
+  }
+  const save = () => {
+    if (!outcome.report) return
+    const entry: NotebookEntry = { id: crypto.randomUUID(), name: name.trim() || topic.title, topicId, values: { ...values }, createdAt: new Date().toISOString() }
+    const next = [entry, ...notebook].slice(0, 30)
+    try { writeNotebook(next); setNotebook(next); setName(''); setNotice('已保存到本机实验本') }
+    catch (error) { setNotice((error as Error).message) }
+  }
+  const restore = (entry: NotebookEntry) => {
+    setDrafts(current => ({ ...current, [topicId]: { ...values } }))
+    setTopicId(entry.topicId)
+    setValues({ ...entry.values })
+    setQuery('')
+    setName(entry.name)
+    setReplayKey(key => key + 1)
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
+  const remove = (id: string) => {
+    const next = notebook.filter(entry => entry.id !== id)
+    try { writeNotebook(next); setNotebook(next); setNotice('已删除这条实验记录') }
+    catch (error) { setNotice((error as Error).message) }
   }
   const copy = async () => {
     if (!outcome.report) return
@@ -49,16 +83,22 @@ export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () =
   return <main className="advanced-shell">
     <nav className="topic-nav" aria-label="高中专题">
       <div className="topic-nav-title"><FlaskConical size={19} /><span>高中专题</span><small>{TOPICS.length}</small></div>
-      <div className="topic-nav-list">{TOPICS.map((item, i) => <button key={item.id} className={item.id === topicId ? 'active' : ''} aria-current={item.id === topicId ? 'page' : undefined} onClick={() => changeTopic(item.id)}><span>{String(i + 1).padStart(2, '0')}</span>{item.title}{item.tag === '拓展' && <small>拓展</small>}</button>)}</div>
+      <label className="topic-search"><Search size={16} /><input type="search" aria-label="查找专题" placeholder="查找专题或题型" value={query} onChange={event => setQuery(event.target.value)} /></label>
+      <div className="topic-nav-list">{visibleTopics.map((item) => <button key={item.id} className={item.id === topicId ? 'active' : ''} aria-current={item.id === topicId ? 'page' : undefined} onClick={() => changeTopic(item.id)}><span>{String(TOPICS.indexOf(item) + 1).padStart(2, '0')}</span>{item.title}{item.tag === '拓展' && <small>拓展</small>}</button>)}</div>
+      {visibleTopics.length === 0 && <p className="topic-search-empty">没有匹配的专题，试试其他关键词。</p>}
       <button className="topic-back" onClick={onBack}><ArrowLeft size={15} /> 返回基础实验</button>
+      <section className="topic-notebook" aria-label="本机专题实验本"><h3>我的实验本 <small>{notebook.length}/30</small></h3>
+        {notebook.length === 0 ? <p>保存一道题，下次回来继续推演。</p> : <ul>{notebook.map(entry => <li key={entry.id}><button aria-label={`恢复 ${entry.name}`} onClick={() => restore(entry)}><strong>{entry.name}</strong><small>{TOPICS.find(t => t.id === entry.topicId)?.title}</small></button><button aria-label={`删除 ${entry.name}`} onClick={() => remove(entry.id)}><Trash2 size={15} /></button></li>)}</ul>}
+        <p>仅此浏览器可见 · 保留最近 30 条</p>
+      </section>
       <p className="topic-local-note">本地计算 · 无需注册<br />仅用于学习与教学</p>
     </nav>
     <div className="topic-main">
       <header className="topic-heading"><div><p>FIELD NOTES / 高中遗传专题 <span>{topic.tag}</span></p><h2>{topic.title}</h2><div className="topic-intro">{topic.intro}</div></div><span className="topic-number" aria-hidden="true">{String(TOPICS.indexOf(topic) + 1).padStart(2, '0')}</span></header>
       <div className="topic-workbench">
         <aside className="topic-settings">
-          <div className="settings-heading"><h3>实验条件</h3><button onClick={() => setValues({ ...topic.defaults })} aria-label="重置本题"><RotateCcw size={16} /></button></div>
-          {topic.examples && <div className="topic-examples"><span>经典题型</span>{topic.examples.map(example => <button key={example.label} onClick={() => setValues({ ...example.values })}>{example.label}<ArrowUpRight size={13} /></button>)}</div>}
+          <div className="settings-heading"><h3>实验条件</h3><button onClick={() => { setValues({ ...topic.defaults }); setReplayKey(key => key + 1) }} aria-label="重置本题"><RotateCcw size={16} /></button></div>
+          {topic.examples && !guided && <div className="topic-examples"><span>经典题型</span>{topic.examples.map(example => <button key={example.label} onClick={() => { setValues({ ...example.values }); setReplayKey(key => key + 1) }}>{example.label}<ArrowUpRight size={13} /></button>)}</div>}
           <form onSubmit={event => event.preventDefault()} noValidate>
             {topic.fields.filter(field => !field.when || field.when(values)).map(field => <div className="topic-field" key={`${field.key}-${field.label}`}>
               <label htmlFor={`topic-${field.key}`}>{field.label}</label>
@@ -66,12 +106,14 @@ export function AdvancedPage({ onBack, initialTopic = 'lethal' }: { onBack: () =
               {field.hint && <small id={`hint-${field.key}`}>{field.hint}</small>}
             </div>)}
           </form>
+          <div className="topic-save"><label htmlFor="experiment-name">实验名称</label><input id="experiment-name" maxLength={60} placeholder={topic.title} value={name} onChange={event => setName(event.target.value)} /><button disabled={!outcome.report} onClick={save}><Save size={16} />保存本题</button></div>
           <p className="settings-footnote">修改条件后自动重新计算。<br />百分比显示保留至小数点后 4 位。</p>
         </aside>
         <div className="topic-results">
-          <div className="topic-result-toolbar"><span><i /> 实时推导</span><div><button disabled={!outcome.report} onClick={copy}><Copy size={15} />复制结果</button><button disabled={!outcome.report} onClick={() => window.print()}><Printer size={15} />打印 / PDF</button></div></div>
+          <div className="topic-result-toolbar"><span><i /> {guided ? '课堂推导' : '实时推导'}</span><div><button disabled={!outcome.report || guided} onClick={() => { if (outcome.report) setBaseline({ topicId, report: outcome.report, conditions: topic.fields.filter(field => !field.when || field.when(values)).map(field => `${field.label}：${field.options?.find(option => option.value === values[field.key])?.label ?? (values[field.key] || '无')}`).join('；') }) }}>设为对照</button><button aria-pressed={guided} onClick={() => setGuided(value => !value)}><BookOpen size={15} />{guided ? '退出课堂推导' : '课堂推导'}</button><button disabled={!outcome.report || guided} onClick={copy}><Copy size={15} />复制结果</button><button disabled={!outcome.report || guided} onClick={() => window.print()}><Printer size={15} />打印 / PDF</button></div></div>
           {notice && <p className="topic-notice" role="status">{notice}</p>}
-          {outcome.report ? <ReportView report={outcome.report} /> : <section className="topic-error" role="alert"><span>请检查实验条件</span><p>{outcome.error}</p><small>输入修正后，结果会自动恢复。</small></section>}
+          {!guided && baseline?.topicId === topicId && <section className="experiment-comparison" aria-label="实验对照"><div className="comparison-heading"><h3>改变条件，观察差异</h3><button onClick={() => setBaseline(null)}>清除对照</button></div><p>对照条件：{baseline.conditions}</p><div className="report-table-scroll"><table><thead><tr><th scope="col">观察指标</th><th scope="col">对照实验</th><th scope="col">当前实验</th></tr></thead><tbody>{baseline.report.metrics.map(metric => <tr key={metric.label}><th scope="row">{metric.label}</th><td>{metric.value}</td><td>{outcome.report?.metrics.find(item => item.label === metric.label)?.value ?? '—'}</td></tr>)}</tbody></table></div>{!outcome.report && <p>当前条件无效，修正后再比较。</p>}</section>}
+          {outcome.report ? guided ? <GuidedReport key={`${topicId}-${JSON.stringify(values)}-${replayKey}`} report={outcome.report} /> : <ReportView report={outcome.report} /> : <section className="topic-error" role="alert"><span>请检查实验条件</span><p>{outcome.error}</p><small>输入修正后，结果会自动恢复。</small></section>}
           <footer className="topic-sources">模型参考：<a href="https://openstax.org/books/biology-2e/pages/12-2-characteristics-and-traits" target="_blank" rel="noreferrer">OpenStax · 遗传规律</a><span> / </span><a href="https://www.moe.gov.cn/srcsite/A26/s8001/202006/t20200603_462199.html" target="_blank" rel="noreferrer">高中课程标准</a><p>涵盖常见计算模型；连锁与互作列为拓展。系谱工具限核心家庭，不替代多代家系分析或医学诊断。</p></footer>
         </div>
       </div>
