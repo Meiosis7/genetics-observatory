@@ -1,6 +1,8 @@
+import type { TeachingDiagram } from './diagramTypes'
 export type Values = Record<string, string>
 
 export interface Report {
+  diagrams?: TeachingDiagram[]
   summary: string
   metrics: { label: string; value: string; hint?: string }[]
   distributions: { title: string; rows: { label: string; value: number }[] }[]

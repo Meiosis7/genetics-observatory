@@ -1,6 +1,6 @@
 # 遗传观察所
 
-[![Tests](https://img.shields.io/badge/tests-82%20passing-17382d)](https://github.com/Meiosis7/genetics-observatory/actions)
+[![Tests](https://img.shields.io/badge/tests-92%20passing-17382d)](https://github.com/Meiosis7/genetics-observatory/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-e76f51.svg)](LICENSE)
 
 在线体验：[GitHub Pages](https://meiosis7.github.io/genetics-observatory/)
@@ -46,6 +46,20 @@
 | 子代事件概率 | 二项分布，恰好 k 次、至少一次及零次 |
 | 连锁与交换（拓展） | 雌雄相位与 0–50% 重组率，权重计算 |
 | 显性关系与互作（拓展） | 不完全显性、共显性、9:7、15:1、9:3:4、12:3:1、13:3、9:6:1 |
+
+### 每步图解推导
+
+全部 11 个专题的每条推导都配有与输入联动的图解，课堂模式同步逐步揭晓。基础自由交配也提供加权棋盘格。
+
+- 致死：原始配子、配子筛选、受精棋盘格、合子存活权重、存活贡献与归一化图。
+- 伴性、ABO、连锁、互作：按真实配子概率绘制棋盘格，并展示性别条件概率或表现型归类。
+- 系谱：核心家庭图、模型检验和排除结果。
+- 自交、群体：逐代变化曲线、等位基因计数流向与随机结合棋盘格。
+- DNA：互补配对、氢键及半保留复制的新旧链来源；大轮次数值标注，不展开海量分子。
+- 细胞分裂：各阶段染色体形态示意与单细胞精确计数；超过 8 条时明确标注示意限制。
+- 事件概率：事件分支、位置排列与对立事件图。
+
+图解支持手机横向查看和打印，颜色之外也以文字区分致死、新旧链与各类结果。
 
 ### 模型边界
 

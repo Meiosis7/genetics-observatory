@@ -1,0 +1,44 @@
+import { Fragment, type CSSProperties } from 'react'
+import type { TeachingDiagram } from './diagramTypes'
+import './diagrams.css'
+
+const pct = (value: number) => `${Number((value * 100).toFixed(4))}%`
+const num = (value: number) => Number(value.toFixed(4)).toLocaleString('zh-CN', { maximumFractionDigits: 4 })
+const colors = ['#17382d', '#bf5139', '#8d721f', '#526980']
+
+function Chart({ diagram }: { diagram: Extract<TeachingDiagram, { kind: 'chart' }> }) {
+  const { labels, series, unit } = diagram
+  const max = Math.max(unit === '%' ? 100 : 1, ...series.flatMap(s => s.values))
+  const width = Math.max(620, labels.length * 44), plot = width - 86
+  const x = (i: number) => 60 + (i + .5) * plot / labels.length
+  const y = (v: number) => 215 - 175 * v / max
+  return <><div className="diagram-legend">{series.map((s, i) => <span key={s.label}><i style={{ background: colors[i % colors.length] }} />{s.label}</span>)}</div><div className="diagram-scroll" role="region" aria-label={`${diagram.title}图表`} tabIndex={0}><svg className="diagram-chart" viewBox={`0 0 ${width} 290`} style={{ minWidth: width }} role="img" aria-label={`${diagram.title}，纵轴单位${unit}，横轴${labels.join('、')}`}>
+    {[0, .25, .5, .75, 1].map(tick => <g key={tick}><line x1="50" x2={width - 15} y1={y(tick * max)} y2={y(tick * max)} stroke="#d7cdbb" strokeDasharray="4 5" /><text x="43" y={y(tick * max) + 4} textAnchor="end" fontSize="10" fill="#69766f">{num(tick * max)}</text></g>)}
+    {series.map((s, si) => <g key={s.label} fill={colors[si % colors.length]} stroke={colors[si % colors.length]}>
+      {diagram.connect ? <><polyline points={s.values.map((v, i) => `${x(i)},${y(v)}`).join(' ')} fill="none" strokeWidth="2.5" />{s.values.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5"><title>{labels[i]}：{s.label} {num(v)}{unit}</title></circle>)}</> : s.values.map((v, i) => { const bar = Math.min(35, plot / labels.length / (series.length + 1)); return <g key={i}><rect x={x(i) + (si - series.length / 2) * bar} y={y(v)} width={bar - 3} height={215 - y(v)} rx="2" stroke="none" /><text x={x(i) + (si - series.length / 2) * bar + (bar - 3) / 2} y={y(v) - 8} fontSize="11" textAnchor="middle" stroke="none">{num(v)}</text></g> })}
+    </g>)}
+    {labels.map((label, i) => <text key={`${label}-${i}`} x={x(i)} y="236" textAnchor="middle" fontSize="10" fill="#315548">{label.length > 8 ? `${label.slice(0, 8)}…` : label}</text>)}
+    <text x="16" y="18" fontSize="11" fill="#69766f">{unit}</text>
+  </svg></div><details className="diagram-data"><summary>读取图中数值</summary><ul>{labels.map((label, i) => <li key={`${label}-${i}`}><strong>{label}</strong> {series.map(s => `${s.label} ${num(s.values[i])}${unit}`).join('；')}</li>)}</ul></details></>
+}
+
+function Person({ x, y, female, affected, label }: { x: number; y: number; female: boolean; affected: boolean; label: string }) {
+  return <g>{female ? <circle cx={x} cy={y} r="23" fill={affected ? '#17382d' : '#fffdf8'} stroke="#17382d" strokeWidth="3" /> : <rect x={x - 23} y={y - 23} width="46" height="46" fill={affected ? '#17382d' : '#fffdf8'} stroke="#17382d" strokeWidth="3" />}<text x={x} y={y + 46} textAnchor="middle" fontSize="14" fill="#17382d">{label} · {affected ? '表现' : '不表现'}</text></g>
+}
+function Molecule({ type }: { type: 'original' | 'hybrid' | 'fresh' }) {
+  return <span className="dna-molecule" aria-hidden="true"><i className={type === 'fresh' ? 'new-strand' : 'old-strand'} /><i className={type === 'original' ? 'old-strand' : 'new-strand'} /></span>
+}
+
+export function DiagramView({ diagram }: { diagram: TeachingDiagram }) {
+  return <figure className={`teaching-diagram diagram-${diagram.kind}`} aria-label={diagram.title}>
+    <div className="diagram-heading"><span>VISUAL EVIDENCE</span><h4>{diagram.title}</h4></div>
+    {diagram.kind === 'flow' && <div className="diagram-flow">{diagram.stages.map((stage, i) => <div className="diagram-flow-row" key={i}><strong>{stage.label}</strong><span className="diagram-arrow" aria-hidden="true">→</span><div>{stage.items.length ? stage.items.map((item, j) => <div className={`diagram-token tone-${item.tone ?? 'normal'}`} key={j}><b>{item.label}</b>{item.detail && <small>{item.detail}</small>}</div>) : <div className="diagram-token tone-muted">无</div>}</div></div>)}</div>}
+    {diagram.kind === 'cross' && <><div className="diagram-grid-legend"><span>↓ 雌配子</span><span>→ 雄配子</span><span>每格 = 行概率 × 列概率</span></div><div className="diagram-scroll" tabIndex={0} role="region" aria-label={`${diagram.title}组合`}><div className="weighted-punnett" role="group" aria-label="配子与合子概率" style={{ '--gamete-columns': diagram.male.length } as CSSProperties}><div className="punnett-corner">♀ × ♂</div>{diagram.male.map((g, i) => <div className="punnett-gamete male" key={i}><b>{g.label}</b><small>{pct(g.value)}</small></div>)}{diagram.female.map((g, i) => <Fragment key={i}><div className="punnett-gamete female"><b>{g.label}</b><small>{pct(g.value)}</small></div>{diagram.male.map((_, j) => { const cell = diagram.cells[i * diagram.male.length + j]; return <div className={`punnett-offspring ${cell.survival === 0 ? 'is-dead' : cell.survival !== undefined && cell.survival < 1 ? 'is-partial' : ''}`} key={j}><strong>{cell.label}</strong><span>形成概率 {pct(cell.probability)}</span>{cell.survival !== undefined && <small>{cell.survival === 0 ? '× 全部致死' : `存活权重 ${pct(cell.survival)}`}</small>}{cell.note && <small>{cell.note}</small>}</div>})}</Fragment>)}</div></div></>}
+    {diagram.kind === 'chart' && <Chart diagram={diagram} />}
+    {diagram.kind === 'pedigree' && <svg className="diagram-family" viewBox="0 0 520 250" role="img" aria-label={`父亲${diagram.father ? '表现' : '不表现'}、母亲${diagram.mother ? '表现' : '不表现'}、${diagram.sex === 'male' ? '儿子' : '女儿'}${diagram.child ? '表现' : '不表现'}`}><path d="M 173 58 H 347 M 260 58 V 163" fill="none" stroke="#17382d" strokeWidth="2" /><Person x={150} y={58} female={false} affected={diagram.father} label="父亲" /><Person x={370} y={58} female affected={diagram.mother} label="母亲" /><Person x={260} y={184} female={diagram.sex === 'female'} affected={diagram.child} label={diagram.sex === 'female' ? '女儿' : '儿子'} /></svg>}
+    {diagram.kind === 'bases' && <div className="base-pairs">{[{ a: 'A', b: 'T', count: diagram.at, bonds: 2 }, { a: 'G', b: 'C', count: diagram.gc, bonds: 3 }].map(pair => <div className="base-pair-row" key={pair.a}><div className="base-letter">{pair.a}</div><div className="base-bonds">{Array.from({ length: pair.bonds }, (_, i) => <i key={i} />)}<span>{diagram.bonds ? `${pair.bonds} 个氢键 / 对` : '互补配对'}</span></div><div className="base-letter complementary">{pair.b}</div><strong>× {num(pair.count)} 对{diagram.bonds && <small>贡献 {num(pair.count * pair.bonds)} 个氢键</small>}</strong></div>)}</div>}
+    {diagram.kind === 'dna' && <><div className="diagram-legend"><span><i style={{ background: '#17382d' }} />原始链</span><span><i style={{ background: '#bf5139' }} />新合成链</span></div><div className="dna-generations">{diagram.generations.map((row, i) => <Fragment key={row.generation}>{i > 0 && <div className="dna-generation-arrow">↓ {row.generation - diagram.generations[i - 1].generation > 1 ? '省略中间轮次' : '每条链作为模板'}</div>}<div className="dna-generation"><div><strong>第 {row.generation} 轮</strong><small>共 {num(row.total)} 个分子</small></div><div className="dna-groups">{([{ type: 'original', count: row.original, label: '两条原始链' }, { type: 'hybrid', count: row.hybrid, label: '一旧一新' }, { type: 'fresh', count: row.fresh, label: '两条新链' }] as const).filter(group => group.count > 0).map(group => <div className="dna-group" key={group.type}><Molecule type={group.type} /><strong>× {num(group.count)}</strong><small>{group.label}</small></div>)}</div></div></Fragment>)}</div></>}
+    {diagram.kind === 'chromosomes' && <div className="chromosome-stages">{diagram.stages.map((stage, i) => <article key={i}><h5>{stage.label}</h5><svg viewBox="0 0 160 100" role="img" aria-label={`${stage.label}：${stage.chromosomes}条染色体，${stage.dna}个DNA，${stage.chromatids}条染色单体`}><ellipse cx="80" cy="50" rx="75" ry="44" fill="#f2eddf" stroke="#a9bb9d" />{Array.from({ length: Math.min(stage.chromosomes, 8) }, (_, j) => { const x = 29 + (j % 4) * 34, y = stage.chromosomes > 4 ? 29 + Math.floor(j / 4) * 40 : 50; return <g key={j} stroke={j % 2 ? '#bf5139' : '#17382d'} strokeWidth="4" strokeLinecap="round"><path d={stage.chromatids ? `M ${x - 6} ${y - 11} L ${x + 6} ${y + 11} M ${x + 6} ${y - 11} L ${x - 6} ${y + 11}` : `M ${x} ${y - 12} V ${y + 12}`} /><circle cx={x} cy={y} r="2.5" fill="#e1b950" stroke="none" /></g> })}</svg><dl><div><dt>染色体</dt><dd>{stage.chromosomes}</dd></div><div><dt>DNA</dt><dd>{stage.dna}</dd></div><div><dt>染色单体</dt><dd>{stage.chromatids}</dd></div></dl>{stage.chromosomes > 8 && <small>形态示意仅画 8 条</small>}</article>)}</div>}
+    <figcaption>{diagram.caption}</figcaption>
+  </figure>
+}

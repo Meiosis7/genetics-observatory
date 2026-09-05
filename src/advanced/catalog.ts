@@ -1,6 +1,7 @@
 import { interactionReport, lethalReport, linkageReport } from './crossing'
 import { divisionReport, dnaReport, populationReport, probabilityReport, selfingReport } from './curriculum'
 import { bloodReport, pedigreeReport, sexLinkedReport } from './inheritance'
+import { buildDiagrams } from './diagrams'
 import type { Field, Topic } from './types'
 
 const options = (items: string[]) => items.map(value => ({ value, label: value }))
@@ -10,7 +11,7 @@ const parents: Field[] = [
 ]
 const health = [{ value: 'healthy', label: '不表现该性状' }, { value: 'affected', label: '表现该性状' }]
 
-export const TOPICS: Topic[] = [
+const topicDefinitions: Topic[] = [
   {
     id: 'lethal', title: '致死与存活筛选', tag: '遗传规律',
     intro: '从配子到合子，分清在哪一步致死、用谁作分母。',
@@ -116,3 +117,5 @@ export const TOPICS: Topic[] = [
     ],
   },
 ]
+
+export const TOPICS: Topic[] = topicDefinitions.map(topic => ({ ...topic, calculate: values => { const report = topic.calculate(values); return { ...report, diagrams: buildDiagrams(topic.id, values, report) } } }))

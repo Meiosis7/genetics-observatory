@@ -124,6 +124,14 @@ const interactionRules: Record<string, { groups: string[]; note: string }> = {
   additive: { groups: ['双显性效应', '单显性效应', '单显性效应', '无显性效应'], note: '累加效应：A_B_ : A_bb 与 aaB_ : aabb = 9:6:1' },
 }
 
+export function classifyInteraction(model: string, g: string): string {
+    const single = ['incomplete', 'codominance'].includes(model)
+    const rule = interactionRules[model]
+    if (single) return g === 'AA' ? 'AA · 纯合表型一' : g === 'aa' ? 'aa · 纯合表型二' : model === 'incomplete' ? 'Aa · 中间表型' : 'Aa · 两种性状共同表达'
+    const key = phenotypeKey(g)
+    return rule.groups[['A_B_', 'A_bb', 'aaB_', 'aabb'].indexOf(key)]
+  }
+
 export function interactionReport(v: Values): Report {
   const loci = validateParents(v.parentA, v.parentB)
   const single = ['incomplete', 'codominance'].includes(v.model)
@@ -131,11 +139,7 @@ export function interactionReport(v: Values): Report {
   if (!single && !interactionRules[v.model]) throw new Error('请选择有效的表现型模型')
   const genotypes = cross(pool(v.parentA), pool(v.parentB))
   const rule = interactionRules[v.model]
-  const classify = (g: string) => {
-    if (single) return g === 'AA' ? 'AA · 纯合表型一' : g === 'aa' ? 'aa · 纯合表型二' : v.model === 'incomplete' ? 'Aa · 中间表型' : 'Aa · 两种性状共同表达'
-    const key = phenotypeKey(g)
-    return rule.groups[['A_B_', 'A_bb', 'aaB_', 'aabb'].indexOf(key)]
-  }
+  const classify = (g: string) => classifyInteraction(v.model, g)
   const actualPhenotypes = phenotypes(genotypes, classify)
   const actualSummary = Object.entries(actualPhenotypes)
     .map(([label, probability]) => `${label} ${percent(probability)}`)
