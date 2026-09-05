@@ -1,5 +1,10 @@
 # 遗传观察所
 
+[![Tests](https://img.shields.io/badge/tests-69%20passing-17382d)](https://github.com/Meiosis7/genetics-observatory/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-e76f51.svg)](LICENSE)
+
+在线体验：[GitHub Pages](https://meiosis7.github.io/genetics-observatory/)
+
 一个面向高中学生与教师的遗传学交互平台。所有计算在浏览器中完成，不上传学习输入。延续纸张、森林绿与珊瑚色的科学杂志界面。
 
 ## 已实现
@@ -56,3 +61,7 @@ npm run build
 ```
 
 生产文件输出到 `dist/`，可部署至任意静态网站托管服务。
+
+## 开源许可
+
+本项目采用 [MIT License](LICENSE)。欢迎用于学习、教学和二次开发；遗传计算结果仅用于教育，不构成医学建议。
