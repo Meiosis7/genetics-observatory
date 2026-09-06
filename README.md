@@ -1,6 +1,6 @@
 # 遗传观察所
 
-[![Tests](https://img.shields.io/badge/tests-92%20passing-17382d)](https://github.com/Meiosis7/genetics-observatory/actions)
+[![Tests](https://img.shields.io/badge/tests-99%20passing-17382d)](https://github.com/Meiosis7/genetics-observatory/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-e76f51.svg)](LICENSE)
 
 在线体验：[GitHub Pages](https://meiosis7.github.io/genetics-observatory/)
@@ -49,7 +49,7 @@
 
 ### 每步图解推导
 
-全部 11 个专题的每条推导都配有与输入联动的图解，课堂模式同步逐步揭晓。基础自由交配也提供加权棋盘格。
+全部 11 个专题的每条推导都配有与输入联动的图解。教师模式使用固定的连续演播台：相同配子与组合按上一帧位置平滑过渡，新增内容按顺序出现，变化数值高亮。基础教师演示与专题教师模式都支持自动播放、暂停自动推进、3/5/8 秒节奏、上一步及本步动画重播。参数改变时停止播放并重置；系统启用“减少动态效果”时直接显示静态图解。基础自由交配也提供加权棋盘格。
 
 - 致死：原始配子、配子筛选、受精棋盘格、合子存活权重、存活贡献与归一化图。
 - 伴性、ABO、连锁、互作：按真实配子概率绘制棋盘格，并展示性别条件概率或表现型归类。
